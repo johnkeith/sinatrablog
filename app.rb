@@ -11,13 +11,10 @@ class Post < ActiveRecord::Base
 	validates :body, presence: true
 end
 
-get "/" do
-	@posts = Post.order("created_at DESC")
-	@title = "Welcome!"
-	erb :"posts/index"
-end
-
 helpers do
+  include Rack::Utils
+  alias_method :h, :escape_html
+
   def title
     if @title
       "#{@title}"
@@ -27,6 +24,14 @@ helpers do
   end
 end
 
+#show all posts
+get "/" do
+	@posts = Post.order("created_at DESC")
+	@title = "Welcome!"
+	erb :"posts/index"
+end
+
+#create new post
 get "/posts/create" do
 	@title = "Create Post"
 	@post = Post.new
@@ -42,8 +47,22 @@ post "/posts" do
 	end
 end
 
+#view a post
 get "/posts/:id" do
 	@post = Post.find(params[:id])
 	@title = @post.title
 	erb :"posts/view"
+end
+
+#edit post
+get "/posts/:id/edit" do
+	@post = Post.find(params[:id])
+	@title = "Edit Form"
+	erb :"posts/edit"
+end
+
+put "/posts/:id" do
+	@post = Post.find(params[:id])
+	@post.update(params[:post])
+	redirect "/posts/#{@post.id}"
 end
